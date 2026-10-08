@@ -1065,7 +1065,7 @@ input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-of
     <em class="low">1% 低帧 <b data-out="low">--</b></em>
     <em class="therm" title="浏览器读不到温度：这一格给的是最接近的热状态信号"><span data-out="therm-label">热压</span> <b data-out="therm">--</b></em>
     <em class="work" data-out="work" title="每帧积分步数上界 = 渲染像素 × 每像素最大 RK4 步数">--</em>
-    <em class="build">v1.0.0</em>
+    <em class="build">v1.0.1</em>
   </div>
 
   <aside class="console" id="console" hidden aria-label="渲染控制台">
@@ -4157,12 +4157,19 @@ window.BHGL = (function () {
   }
 
   function warnSoftware() {
-    if (!deviceInfo.soft) return;
-    var tag = document.querySelector('[data-out="soft-tag"]');
-    if (tag) tag.hidden = false;
-    var be = document.querySelector('[data-out="dev-backend"]');
-    if (be) be.className = "is-soft";
-    shotToast("WebGL 正在用 CPU 跑（软件渲染）：先开浏览器「使用图形加速」，再到系统「显示卡/图形设置」里把浏览器指到「高性能」，然后完全重启浏览器");
+    if (deviceInfo.soft) {
+      var tag = document.querySelector('[data-out="soft-tag"]');
+      if (tag) tag.hidden = false;
+      var be = document.querySelector('[data-out="dev-backend"]');
+      if (be) be.className = "is-soft";
+      shotToast("WebGL 正在用 CPU 跑（软件渲染）：先开浏览器「使用图形加速」，再到系统「显示卡/图形设置」里把浏览器指到「高性能」，然后完全重启浏览器");
+      return;
+    }
+    // 核显渲染：帧率受限，但不是故障。机器上有独立显卡的话，给一句照着做就能提速的提示。
+    var back = document.querySelector('[data-out="dev-backend"]');
+    if (back && back.textContent.indexOf("核显") >= 0) {
+      shotToast("当前用核显渲染（帧率受限）：机器上有独立显卡的话，可在系统「显示卡」设置里把浏览器设为「高性能」，然后完全重启浏览器（详见 README）");
+    }
   }
 
   /* 烤机面板抬头显示机型，拿不到就退回 GPU 名——截图里得能认出是哪台设备 */
@@ -4341,7 +4348,7 @@ window.BHGL = (function () {
     canvas = document.getElementById("stage");
     liveChart = document.getElementById("fpsChart");
     setupCompactUI();
-    console.log("[GARGANTUA] v1.0.0 — single-file WebGL2 Schwarzschild black-hole renderer");
+    console.log("[GARGANTUA] v1.0.1 — single-file WebGL2 Schwarzschild black-hole renderer");
     try {
       renderer = new window.BHGL.Renderer(canvas);
     } catch (err) {
